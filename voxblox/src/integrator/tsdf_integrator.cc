@@ -493,6 +493,20 @@ void FastTsdfIntegrator::integrateFunction(const Transformation& T_G_C,
   DCHECK(index_getter != nullptr);
 
   size_t point_idx;
+
+  //tarmy pre-process the points of up and down projection planes
+  int total_projection_count=0,up_down_hits=0,exit_flag=0,points_total_nums,points_C_nums;
+  points_total_nums=points_C.size();
+  points_C_nums=points_total_nums*0.8;
+  while (index_getter->getNextIndex(&point_idx) && exit_flag<points_total_nums){
+    std::cout<<"tarmy circle----------"<<std::endl;
+    //step 60
+    point_idx +=20;
+    exit_flag+=20;
+  }
+  point_idx=0;
+  /**************************end****************************/
+
   while (index_getter->getNextIndex(&point_idx) &&
          (std::chrono::duration_cast<std::chrono::microseconds>(
               std::chrono::steady_clock::now() - integration_start_time_)
@@ -504,17 +518,36 @@ void FastTsdfIntegrator::integrateFunction(const Transformation& T_G_C,
     if (!isPointValid(point_C, freespace_points, &is_clearing)) {
       continue;
     }
+    std::cout<<"points_C_nums----------"<<points_C_nums<<std::endl;
 
     const Point origin = T_G_C.getPosition();
     const Point point_G = T_G_C * point_C;
 
+   
     // Checks to see if another ray in this scan has already started 'close'
     // to this location. If it has then we skip ray casting this point. We
     // measure if a start location is 'close' to another points by inserting
     // the point into a set of voxels. This voxel set has a resolution
     // start_voxel_subsampling_factor times higher then the voxel size.
-    GlobalIndex global_voxel_idx;
+    GlobalIndex global_voxel_idx,global_voxel_idx_up,global_voxel_idx_down;
     
+    //tarmy
+    //Caculating  the overlap ratio of two projection planes
+    if(point_G(2,0)<1.5f&&point_G(2,0)>1.3f){
+    global_voxel_idx_up = getGridIndexFromPoint<GlobalIndex>(point_G, config_.start_voxel_subsampling_factor * voxel_size_inv_);
+    total_projection_count++;
+    //std::cout<<"point_G(2,0)--------"<<point_G(2,0)<<std::endl;
+    }
+    if(point_G(2,0)>0.6f&&point_G(2,0)<0.8f){
+    global_voxel_idx_down = getGridIndexFromPoint<GlobalIndex>(point_G, config_.start_voxel_subsampling_factor * voxel_size_inv_);
+    total_projection_count++;
+    //std::cout<<"point_G(2,0)---------"<<point_G(2,0)<<std::endl;
+    }
+    std::cout<<"global_voxel_idx_down\n"<<global_voxel_idx_down<<std::endl;
+    //std::cout<<"total_projection_count"<<total_projection_count<<std::endl;
+
+   /**************************end****************************/
+
     global_voxel_idx = getGridIndexFromPoint<GlobalIndex>(
         point_G, config_.start_voxel_subsampling_factor * voxel_size_inv_);
     //if(global_voxel_idx(2, 0)>60.0f)continue;

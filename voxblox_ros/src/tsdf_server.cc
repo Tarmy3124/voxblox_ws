@@ -409,6 +409,10 @@ void TsdfServer::integratePointcloud(const Transformation& T_G_C,
                                      const Colors& colors,
                                      const bool is_freespace_pointcloud) {
   CHECK_EQ(ptcloud_C.size(), colors.size());
+  //tarmy 
+  // Transform points into world frame.
+  //Pointcloud ptcloud;
+  //transformPointcloud(T_G_C, ptcloud_C, &ptcloud);
   tsdf_integrator_->integratePointCloud(T_G_C, ptcloud_C, colors,
                                         is_freespace_pointcloud);
 }
