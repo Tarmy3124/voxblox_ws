@@ -375,6 +375,9 @@ void MergedTsdfIntegrator::integrateVoxel(
     const Colors& colors, bool enable_anti_grazing, bool clearing_ray,
     const std::pair<GlobalIndex, AlignedVector<size_t>>& kv,
     const LongIndexHashMapType<AlignedVector<size_t>>::type& voxel_map) {
+  //tarmy data
+  static int kvpoints_num;
+  //tarmy data
   if (kv.second.empty()) {
     return;
   }
@@ -383,7 +386,8 @@ void MergedTsdfIntegrator::integrateVoxel(
   Color merged_color;
   Point merged_point_C = Point::Zero();
   FloatingPoint merged_weight = 0.0;
-
+  //tarmy 
+  if(kv.first.z()==60)std::cout<<"kv.first==60"<<kvpoints_num++<<std::endl;
   for (const size_t pt_idx : kv.second) {
     const Point& point_C = points_C[pt_idx];
     const Color& color = colors[pt_idx];
@@ -411,6 +415,8 @@ void MergedTsdfIntegrator::integrateVoxel(
                        voxel_size_inv_, config_.default_truncation_distance);
 
   GlobalIndex global_voxel_idx;
+  //tarmy
+  LongIndexHashMapType<TsdfVoxel>::type voxel_down_map;
   while (ray_caster.nextRayIndex(&global_voxel_idx)) {
     if (enable_anti_grazing) {
       // Check if this one is already the the block hash map for this
@@ -425,9 +431,17 @@ void MergedTsdfIntegrator::integrateVoxel(
     BlockIndex block_idx;
     TsdfVoxel* voxel =
         allocateStorageAndGetVoxelPtr(global_voxel_idx, &block, &block_idx);
-
+    //tarmy t1
+    if(kv.first.z()<120){
     updateTsdfVoxel(origin, merged_point_G, global_voxel_idx, merged_color,
-                    merged_weight, voxel);
+                    merged_weight, voxel); //origin
+    }
+    else{  //tarmy
+    GlobalIndex global_voxel_idx_down(global_voxel_idx.x(),global_voxel_idx.y(),60);
+    	(*voxel)=voxel_down_map[global_voxel_idx_down];
+    }
+   //tarmy t1
+   if(kv.first.z()==60)voxel_down_map[global_voxel_idx]=(*voxel);
   }
 }
 
